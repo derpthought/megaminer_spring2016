@@ -76,7 +76,7 @@ class AI(BaseAI):
             for sp in self.player.spiders:
                 if sp == phil:
                     continue
-                if sp.busy = "":
+                if sp.busy == "":
                     if sp.game_object_name == "Weaver":
                         sp.weaken(BITCH_ASS_THREAD)
                     elif sp.game_object_name == "Cutter":
