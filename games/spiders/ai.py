@@ -4,6 +4,10 @@ from joueur.base_ai import BaseAI
 
 import random
 
+HOMEBASE = None
+BITCH_ASS_THREAD = None
+phil = None
+
 class AI(BaseAI):
     """ The basic AI functions that are the same between games. """
 
@@ -14,21 +18,34 @@ class AI(BaseAI):
         Returns
             str: The name of your Player.
         """
-        return "Spiders Python Player" # REPLACE THIS WITH YOUR TEAM NAME
+        return "FLABSLAB AKA TEAM KESHTKAR AKA TripD's HEROES"
 
 
 
     def start(self):
         """ This is called once the game starts and your AI knows its playerID and game. You can initialize your AI here.
         """
-
+        # get broodmother home neste
+        for sp in self.player.spiders:
+            if sp.game_object_name == "BroodMother":
+                HOMEBASE = sp.nest
+                phil = sp
+                break
 
 
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
-
-
+        # webs inbound to HOMEBASE
+        INBOUND = HOMEBASE.webs
+        BITCH_ASS_THREAD = None
+        # find nestes with connection to HOMEBASE
+        # find min distance neste
+        if INBOUND:
+            BITCH_ASS_THREAD = INBOUND[0]
+            for web in INBOUND:
+                if HOMEBASE.distance_to(web) < HOMEBASE.distance_to(BITCH_ASS_THREAD):
+                    BITCH_ASS_THREAD = web
 
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
@@ -45,8 +62,31 @@ class AI(BaseAI):
         Returns:
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
-        # This is ShellAI, it is very simple, and demonstrates how to use all
-        # the game objects in Spiders.
+
+        # spawn spiders 50/50 W/C
+        while phil.eggs > 0:
+            if phil.eggs % 2 == 0:
+                phil.spawn("Weaver")
+            phil.spawn("Cutter")
+
+        # finish current work if not completed
+        # if no work, then choose nearest web to start work
+
+        if BITCH_ASS_THREAD:
+            for sp in self.player.spiders:
+                if sp == phil:
+                    continue
+                if sp.busy = "":
+                    if sp.game_object_name == "Weaver":
+                        sp.weaken(BITCH_ASS_THREAD)
+                    elif sp.game_object_name == "Cutter":
+                        sp.cut(BITCH_ASS_THREAD)
+                    else: # lol get that bitch outta hurr
+                        phil.consume(sp)
+
+        return True
+
+        """
         spider = random.choice(self.player.spiders)
 
         if spider.game_object_name == "BroodMother":
@@ -120,3 +160,4 @@ class AI(BaseAI):
                                       " weakening Web #" + web.id)
                                 weaver.weaken(web)
         return True # To signify that we are done with our turn
+"""
