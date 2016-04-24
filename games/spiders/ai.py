@@ -93,6 +93,9 @@ class AI(BaseAI):
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
         """
+        # spawn at beginning of turn
+
+
         # HQ_cutters
         count = 0
         for line in self.HOMEBASE.webs:
@@ -110,7 +113,9 @@ class AI(BaseAI):
 
         # spitters
 
+
         # attack_cutters
+        
         """
 
         return True
