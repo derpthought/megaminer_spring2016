@@ -36,7 +36,7 @@ class AI(BaseAI):
         """
         # DEBUGGING
         start = self.player.time_remaining
-        
+
         self.phil = self.player.brood_mother
         self.HOMEBASE = self.phil.nest
         self.ENEMYBASE = self.player.other_player.brood_mother.nest
@@ -65,16 +65,16 @@ class AI(BaseAI):
         epsilon = 100
         self.frontline = list(filter(lambda tn: abs(tn.x - 200) < epsilon, self.target_nests))
         sorted(self.frontline, key=lambda n: n.distance_to(self.HOMEBASE))
-        
+
         # remove duplicate values
         for n in self.frontline:
             self.target_nests.remove(n)
             
         if self.HOMEBASE in self.frontline:
             self.frontline.remove(HOMEBASE)
-        
+
         print("FRONTLINE ESTABLISHED")
-        
+
         # DEBUGGING
         print(str(start - self.player.time_remaining))
 
@@ -82,7 +82,7 @@ class AI(BaseAI):
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
-        
+
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
 
@@ -92,10 +92,10 @@ class AI(BaseAI):
         """
         if won:
             print("SUCK IT!")
-            
+
         else:
             print("CALCULATED")
-            
+
     def run_turn(self):
         """ This is called every time it is this AI.player's turn.
 
@@ -103,12 +103,12 @@ class AI(BaseAI):
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
         # spawn at beginning of turn
-        
+
         start = self.player.time_remaining
-        
-        # DEBUGGING 
+
+        # DEBUGGING
         start = self.player.time_remaining
-        
+
         # determine which hq_cutters alive
         self.hq_cutter = list(filter(lambda hqc: not hqc.is_dead, self.hq_cutters))
 
@@ -119,35 +119,35 @@ class AI(BaseAI):
         self.spitters = list(filter(lambda sp: not sp.is_dead, self.spitters))
 
         print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
-        
+
         # DEBUGGING
         print(str(start - self.player.time_remaining))
-        
+
         # initial turn spawn
-        if self.game.current_turn in [0,1]:            
+        if self.game.current_turn in [0,1]:
             for i in range(self.phil.eggs):
                 if i % 3 == 0:
                     self.hq_cutters.append(self.phil.spawn('Cutter'))
                 else:
                     self.spitters.append(self.phil.spawn('Spitter'))
-                    
+
                 print("INTO THE MEATGRINDER")
-                    
+
             count_front = 0
             count_target = 0
             for spitter in self.spitters:
                 if count_front < len(self.frontline):
                     spitter.spit(self.frontline[count_front])
                     count_front += 1
-                
+
                 else:
                     if count_target < len(self.target_nests):
                         spitter.spit(self.target_nests[-1 - count_target])
                         count_target += 1
-                        
+
                     else:
                         break
-            
+
         """
         # HQ_cutters
         count = 0
@@ -168,14 +168,28 @@ class AI(BaseAI):
 
 
         # attack_cutters
-
+        for cutter in self.attack_cutters:
+            if not cutter.busy:
+                if cutter.nest != self.HOMEBASE:
+                    for path in cutter.nest.webs:
+                        for sp in path.spiderlings:
+                            if sp.owner != self.player:
+                                cutter.cut(path)
+                    else:
+                        if len(cutter.nest.webs) > 0:
+                            cutter.cut(cutter.nest.webs[0])
+                else:
+                    for path in self.HOMEBASE.webs:
+                        if path.load + 1 < path.strength:
+                            cutter.move(path)
+                            break
 
         """
-        
+
         # DEBUGGING
         print(str(start - self.player.time_remaining))
         print("YOUR MOVE BITCH")
-        
+
         return True
 
 
