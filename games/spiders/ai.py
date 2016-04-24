@@ -34,9 +34,12 @@ class AI(BaseAI):
     def start(self):
         """ This is called once the game starts and your AI knows its playerID and game. You can initialize your AI here.
         """
+        # DEBUGGING
+        start = self.player.time_remaining
+        
         self.phil = self.player.brood_mother
         self.HOMEBASE = self.phil.nest
-        self.ENEMYBASE = self.other_player.brood_mother.nest
+        self.ENEMYBASE = self.player.other_player.brood_mother.nest
         print("phil ONLINE")
         print("HOMEBASE DETERMINED")
         print("MAIN TARGET ACQUIRED")
@@ -44,12 +47,12 @@ class AI(BaseAI):
         # determine our sidedness
         if self.phil.nest.x <= 200:
             self.side = 0
-            self.target_nests = filter(lambda n: n.x <= 200, self.game.nests)
+            self.target_nests = list(filter(lambda n: n.x <= 200, self.game.nests))
             print("LEFT")
 
         else:
             self.side = 1
-            self.target_nests = filter(lambda n: n.x > 200, self.game.nests)
+            self.target_nests = list(filter(lambda n: n.x > 200, self.game.nests))
             print("RIGHT")
 
         print("TARGET NESTS ACQUIRED")
@@ -60,29 +63,23 @@ class AI(BaseAI):
 
         # get top five target nests closest to line of symmetry
         epsilon = 100
-        self.frontline = filter(lambda tn: math.abs(tn.x - 200) < epsilon, self.target_nests)
-        sorted(self.frontline, key=lambda n: math.abs(n.x - 200))
-
-        if len(self.frontline) > 5:
-            self.frontline = self.frontline[0:5]
-
+        self.frontline = list(filter(lambda tn: abs(tn.x - 200) < epsilon, self.target_nests))
+        sorted(self.frontline, key=lambda n: n.distance_to(self.HOMEBASE))
+        
+        # remove duplicate values
+        for n in self.frontline:
+            self.target_nests.remove(n)
+        
         print("FRONTLINE ESTABLISHED")
+        
+        # DEBUGGING
+        print(str(start - self.player.time_remaining))
 
 
     def game_updated(self):
-        """ This is called every time the game's state updates, so if you are tracking anything you can update it  here.
+        """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
-        # determine which hq_cutters alive
-        self.hq_cutter = filter(lambda hqc: not hqc.is_dead(), self.hq_cutters)
-
-        # determine which attack_cutters still alive
-        self.attack_cutter = filter(lambda ac: not ac.is_dead(), self.attack_cutters)
-
-        # determine which spitters still alive
-        self.spitters = filter(lambda sp: not sp.is_dead(), self.spitters)
-
-        print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
-
+        
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
 
@@ -90,17 +87,65 @@ class AI(BaseAI):
             won (bool): True means you won, False means you lost.
             reason (str): The human readable string explaining why you won or lost.
         """
-
+        if won:
+            print("SUCK IT!")
+            
+        else:
+            print("CALCULATED")
+            
     def run_turn(self):
         """ This is called every time it is this AI.player's turn.
 
         Returns:
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
-
-        """
         # spawn at beginning of turn
+        
+        start = self.player.time_remaining
+        
+        # DEBUGGING 
+        start = self.player.time_remaining
+        
+        # determine which hq_cutters alive
+        self.hq_cutter = list(filter(lambda hqc: not hqc.is_dead, self.hq_cutters))
 
+        # determine which attack_cutters still alive
+        self.attack_cutter = list(filter(lambda ac: not ac.is_dead, self.attack_cutters))
+
+        # determine which spitters still alive
+        self.spitters = list(filter(lambda sp: not sp.is_dead, self.spitters))
+
+        print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
+        
+        # DEBUGGING
+        print(str(start - self.player.time_remaining))
+        
+        # initial turn spawn
+        if self.game.current_turn in [0,1]:            
+            for i in range(self.phil.eggs):
+                if i % 3 == 0:
+                    self.hq_cutters.append(self.phil.spawn('Cutter'))
+                else:
+                    self.spitters.append(self.phil.spawn('Spitter'))
+                    
+                print("INTO THE MEATGRINDER")
+                    
+            count_front = 0
+            count_target = 0
+            for spitter in self.spitters:
+                if count_front < len(self.frontline):
+                    spitter.spit(self.frontline[count_front])
+                    count_front += 1
+                
+                else:
+                    if count_target < len(self.target_nests):
+                        spitter.spit(self.target_nests[-1 - count_target])
+                        count_target += 1
+                        
+                    else:
+                        break
+            
+        """
         # HQ_cutters
         count = 0
         for line in self.HOMEBASE.webs:
@@ -123,7 +168,11 @@ class AI(BaseAI):
 
 
         """
-
+        
+        # DEBUGGING
+        print(str(start - self.player.time_remaining))
+        print("YOUR MOVE BITCH")
+        
         return True
 
 
