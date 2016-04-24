@@ -1,15 +1,20 @@
 # This is where you build your AI for the Spiders game.
 
 from joueur.base_ai import BaseAI
-
 import random
-
-HOMEBASE = None
-BITCH_ASS_THREAD = None
-phil = None
-
+    
 class AI(BaseAI):
-    """ The basic AI functions that are the same between games. """
+    
+    def __init__(self, game):
+        self._game = game
+        self._player = None
+        
+        self.side = 0 # 0 denotes left, 1 right
+        self.target_nests = []
+        self.phil = None
+        self.HOMEBASE = None
+        
+    """ The basic AI functions that are the same between games. """    
     def get_name(self):
         """ This is the name you send to the server so your AI will control the player named this string.
 
@@ -23,28 +28,32 @@ class AI(BaseAI):
     def start(self):
         """ This is called once the game starts and your AI knows its playerID and game. You can initialize your AI here.
         """
-        # get broodmother home neste
-        for sp in self.player.spiders:
-            if sp.game_object_name == "BroodMother":
-                HOMEBASE = sp.nest
-                phil = sp
-                break
-
-
+        self.phil = self.player.brood_mother
+        self.HOMEBASE = self.phil.nest
+        print("phil ONLINE")
+        print("HOMEBASE DETERMINED")
+        
+        # determine our sidedness
+        if self.phil.nest.x <= 200:
+            self.side = 0
+            self.target_nests = filter(lambda n: n.x <= 200, self.game.nests)
+            print("LEFT")
+            
+        else:
+            self.side = 1
+            self.target_nests = filter(lambda n: n.x > 200, self.game.nests)
+            print("RIGHT")
+            
+        print("TARGETS ACQUIRED")
+        
+        # prioritize nests based on distance from HOMEBASE
+        sorted(self.target_nests, key=lambda n: n.distance_to(self.HOMEBASE))
+        print("TARGETS PRIORITIZED")
+        
+        
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
-        if HOMEBASE:
-          # webs inbound to HOMEBASE
-          INBOUND = HOMEBASE.webs
-          BITCH_ASS_THREAD = None
-          # find nestes with connection to HOMEBASE
-          # find min distance neste
-          if INBOUND:
-              BITCH_ASS_THREAD = INBOUND[0]
-              for web in INBOUND:
-                  if HOMEBASE.distance_to(web) < HOMEBASE.distance_to(BITCH_ASS_THREAD):
-                      BITCH_ASS_THREAD = web
 
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
@@ -57,34 +66,55 @@ class AI(BaseAI):
 
     def run_turn(self):
         """ This is called every time it is this AI.player's turn.
-
+        
         Returns:
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
-
+        
+        return True
+        """"
+        # get broodmother home neste
+        phil = self.player.brood_mother
+        HOMEBASE = phil.nest
+        
+        if HOMEBASE:
+          # webs inbound to HOMEBASE
+          INBOUND = HOMEBASE.webs
+          BITCH_ASS_WEB = None
+          # find nestes with connection to HOMEBASE
+          # find min distance neste
+          if INBOUND:
+              BITCH_ASS_WEB = INBOUND[0]
+              for web in INBOUND:
+                  if  web.length < BITCH_ASS_WEB.length :
+                      BITCH_ASS_WEB = web
+            
+        # TODO update spawn cause sux
         # spawn spiders 50/50 W/C
         while phil.eggs > 0:
             if phil.eggs % 2 == 0:
                 phil.spawn("Weaver")
+
             phil.spawn("Cutter")
 
         # finish current work if not completed
         # if no work, then choose nearest web to start work
 
-        if BITCH_ASS_THREAD:
+        if BITCH_ASS_WEB:
             for sp in self.player.spiders:
                 if sp == phil:
                     continue
                 if sp.busy == "":
                     if sp.game_object_name == "Weaver":
-                        sp.weaken(BITCH_ASS_THREAD)
+                        sp.weaken(BITCH_ASS_WEB)
                     elif sp.game_object_name == "Cutter":
-                        sp.cut(BITCH_ASS_THREAD)
+                        sp.cut(BITCH_ASS_WEB)
                     else: # lol get that bitch outta hurr
                         phil.consume(sp)
 
         return True
-
+        """
+        
         """
         spider = random.choice(self.player.spiders)
 
