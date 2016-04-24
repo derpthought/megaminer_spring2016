@@ -6,7 +6,7 @@ import math
 
 def connected_to(webs, home):
     return  any(True for web in webs if home in (web.nest_a, web.nest_b))
-    
+
 class AI(BaseAI):
 
     def __init__(self, game):
@@ -152,12 +152,12 @@ class AI(BaseAI):
 
                     else:
                         break
-        
+
         else:
             while self.phil.eggs > 0:
                self.attack_cutters.append(self.phil.spawn("Cutter"))
-           
-           
+
+
         # spitters
         for spitter in self.spitters:
             if not spitter.busy:
@@ -166,21 +166,23 @@ class AI(BaseAI):
                         continue
                     else:
                         spitter.spit(nest)
+                        frontline.remove(nest)
                         break
-            
-            
+
+
             if not spitter.busy:
                 for nest in self.target_nests:
                     if connected_to(nest.webs, self.HOMEBASE):
                         continue
                     else:
                         spitter.spit(nest)
+                        target_nests.remove(nests)
                         break
-                        
+
             # kill spitter if nothing to do
             if len(self.frontline) == 0 and len(self.target_nests) == 0:
                 self.phil.consume(spitter)
-        
+
         # attack_cutters
         for cutter in self.attack_cutters:
             if not cutter.busy:
@@ -197,7 +199,7 @@ class AI(BaseAI):
                         if path.load + 1 < path.strength:
                             cutter.move(path)
                             break
-                            
+
         # HQ_cutters
         count = 0
         for line in self.HOMEBASE.webs:
@@ -212,9 +214,9 @@ class AI(BaseAI):
                         break
                 if count == len(self.hq_cutters):
                     break
-                    
-        if not cutter.busy:
-                if cutter.nest != self.HOMEBASE:
+        if count < len(self.hq_cutters):
+            for line in self.HOMEBASE.webs:
+                if not cutter.busy:
                     for path in cutter.nest.webs:
                         for sp in path.spiderlings:
                             if sp.owner != self.player:
@@ -222,12 +224,7 @@ class AI(BaseAI):
                     else:
                         if len(cutter.nest.webs) > 0:
                             cutter.cut(cutter.nest.webs[0])
-                else:
-                    for path in self.HOMEBASE.webs:
-                        if path.load + 1 < path.strength:
-                            cutter.move(path)
-                            break
-                    
+
 
         # DEBUGGING
         print(str(start - self.player.time_remaining))
