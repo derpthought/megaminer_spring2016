@@ -37,8 +37,6 @@ class AI(BaseAI):
     def start(self):
         """ This is called once the game starts and your AI knows its playerID and game. You can initialize your AI here.
         """
-        # DEBUGGING
-        start = self.player.time_remaining
 
         self.phil = self.player.brood_mother
         self.HOMEBASE = self.phil.nest
@@ -78,9 +76,6 @@ class AI(BaseAI):
 
         print("FRONTLINE ESTABLISHED")
 
-        # DEBUGGING
-        print(str(start - self.player.time_remaining))
-
 
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
@@ -107,11 +102,7 @@ class AI(BaseAI):
         """
         # spawn at beginning of turn
 
-        start = self.player.time_remaining
-
-        # DEBUGGING
-        start = self.player.time_remaining
-
+        """
         # determine which hq_cutters alive
         self.hq_cutter = list(filter(lambda hqc: not hqc.is_dead, self.hq_cutters))
 
@@ -122,9 +113,7 @@ class AI(BaseAI):
         self.spitters = list(filter(lambda sp: not sp.is_dead, self.spitters))
 
         print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
-
-        # DEBUGGING
-        print(str(start - self.player.time_remaining))
+        """
 
         # initial turn spawn
         if self.game.current_turn in [0,1]:
@@ -134,7 +123,7 @@ class AI(BaseAI):
                 else:
                     self.spitters.append(self.phil.spawn('Spitter'))
 
-                print("INTO THE MEATGRINDER")
+                # print("INTO THE MEATGRINDER")
 
             count_front = 0
             count_target = 0
@@ -166,7 +155,7 @@ class AI(BaseAI):
                         continue
                     else:
                         spitter.spit(nest)
-                        frontline.remove(nest)
+                        self.frontline.remove(nest)
                         break
 
 
@@ -176,16 +165,16 @@ class AI(BaseAI):
                         continue
                     else:
                         spitter.spit(nest)
-                        target_nests.remove(nests)
+                        self.target_nests.remove(nest)
                         break
 
             # kill spitter if nothing to do
-            if len(self.frontline) == 0 and len(self.target_nests) == 0:
+            if len(self.frontline) == 0 and len(self.target_nests) == 0 and not spitter.is_dead:
                 self.phil.consume(spitter)
 
         # attack_cutters
         for cutter in self.attack_cutters:
-            if not cutter.busy:
+            if not cutter.busy and not cutter.is_dead:
                 if cutter.nest != self.HOMEBASE:
                     for path in cutter.nest.webs:
                         for sp in path.spiderlings:
@@ -214,97 +203,23 @@ class AI(BaseAI):
                         break
                 if count == len(self.hq_cutters):
                     break
-        if count < len(self.hq_cutters):
+
+        """
+        while count < len(self.hq_cutters):
             for line in self.HOMEBASE.webs:
-                if not cutter.busy:
-                    for path in cutter.nest.webs:
+                if not self.hq_cutters[count].busy:
+                    for path in self.hq_cutters[count].nest.webs:
                         for sp in path.spiderlings:
                             if sp.owner != self.player:
-                                cutter.cut(path)
+                                self.hq_cutters[count].cut(path)
+                                break
+
+
                     else:
-                        if len(cutter.nest.webs) > 0:
-                            cutter.cut(cutter.nest.webs[0])
-
-
-        # DEBUGGING
-        print(str(start - self.player.time_remaining))
-        print("YOUR MOVE BITCH")
-
+                        if len(self.hq_cutters[count].nest.webs) > 0:
+                            self.hq_cutters[count].cut(self.hq_cutters[count].nest.webs[0])
+                            break
+            count += 1
+        """
+        print("UR MOVE BITH")
         return True
-
-
-        """
-        spider = random.choice(self.player.spiders)
-
-        if spider.game_object_name == "BroodMother":
-            brood_mother = spider
-            choice = random.randint(1, 10)
-
-            if choice == 1: # try to consume a spiderling 10% of the time
-                if len(brood_mother.nest.spiders) > 1:
-                    otherSpider = random.choice(brood_mother.nest.spiders)
-                    if otherSpider != brood_mother:
-                        print("BroodMother #" + brood_mother.id +
-                              " consuming " + otherSpider.game_object_name +
-                              " #" + otherSpider.id)
-                        brood_mother.consume(otherSpider)
-            else: # try to spawn a Spiderling
-                if brood_mother.eggs > 0:
-                    # get a random spiderling type to spawn a new
-                    # Spiderling of that type
-                    randomSpiderlingType = random.choice(["Cutter", "Weaver", "Spitter"])
-                    print("BroodMother #" + brood_mother.id +
-                          " spawning " + randomSpiderlingType)
-                    brood_mother.spawn(randomSpiderlingType)
-        else: # it is a Spiderling
-            spiderling = spider
-
-            if spiderling.busy == "": # then it is NOT busy
-                choice = random.randint(0, 2)
-
-                if choice == 0: # try to move somewhere
-                    if len(spiderling.nest.webs) > 0:
-                        web = random.choice(spiderling.nest.webs)
-                        print("Spiderling " + spiderling.game_object_name +
-                              " #" + spiderling.id + " moving on Web #" + web.id)
-                        spiderling.move(web)
-                elif choice == 1: # try to attack something
-                    if len(spiderling.nest.spiders) > 1:
-                        otherSpider = random.choice(spiderling.nest.spiders)
-                        if otherSpider.owner != spiderling.owner: # attack the enemy!
-                            spiderling.attack(otherSpider)
-                else: # do something unique based on Spiderling type
-                    if spiderling.game_object_name == "Spitter":
-                        spitter = spiderling
-                        enemysNest = self.player.other_player.brood_mother.nest
-
-                        # look for an existing web to the enemy home nest
-                        webExists = any(True
-                                        for web in enemysNest.webs
-                                        if spitter.nest in (web.nest_a, web.nest_b))
-
-                        if not webExists:
-                            print("Spitter #" + spitter.id +
-                                  " spitting to Nest #" + enemysNest.id)
-                            spitter.spit(enemysNest)
-                    elif spiderling.game_object_name == "Cutter":
-                        cutter = spiderling
-                        if len(cutter.nest.webs) > 0:
-                            web = random.choice(cutter.nest.webs)
-                            print("Cutter #" + cutter.id +
-                                  " cutting Web #" + web.id)
-                            cutter.cut(web)
-                    elif spiderling.game_object_name == "Weaver":
-                        weaver = spiderling
-                        if len(weaver.nest.webs) > 0:
-                            web = random.choice(weaver.nest.webs)
-                            if random.randint(0,1) == 1:
-                                print("Weaver #" + weaver.id +
-                                      " strengthening Web #" + web.id)
-                                weaver.strengthen(web)
-                            else:
-                                print("Weaver #" + weaver.id +
-                                      " weakening Web #" + web.id)
-                                weaver.weaken(web)
-        return True # To signify that we are done with our turn
-        """
