@@ -2,6 +2,7 @@
 
 from joueur.base_ai import BaseAI
 import random
+import math
     
 class AI(BaseAI):
     
@@ -11,8 +12,13 @@ class AI(BaseAI):
         
         self.side = 0 # 0 denotes left, 1 right
         self.target_nests = []
+        self.frontline = []
         self.phil = None
         self.HOMEBASE = None
+        self.ENEMYBASE = None
+        self.hq_cutters = []
+        self.attack_cutters = []
+        self.spitters = []
         
     """ The basic AI functions that are the same between games. """    
     def get_name(self):
@@ -30,8 +36,10 @@ class AI(BaseAI):
         """
         self.phil = self.player.brood_mother
         self.HOMEBASE = self.phil.nest
+        self.ENEMYBASE = self.other_player.brood_mother.nest
         print("phil ONLINE")
         print("HOMEBASE DETERMINED")
+        print("MAIN TARGET ACQUIRED")
         
         # determine our sidedness
         if self.phil.nest.x <= 200:
@@ -44,16 +52,30 @@ class AI(BaseAI):
             self.target_nests = filter(lambda n: n.x > 200, self.game.nests)
             print("RIGHT")
             
-        print("TARGETS ACQUIRED")
+        print("TARGET NESTS ACQUIRED")
         
         # prioritize nests based on distance from HOMEBASE
         sorted(self.target_nests, key=lambda n: n.distance_to(self.HOMEBASE))
         print("TARGETS PRIORITIZED")
         
+        epsilon = 100
+        self.front_line = filter(lambda tn: math.abs(tn.x - 200) < epsilon, self.target_nests)
+        print("FRONTLINE ESTABLISHED")
+        
         
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
+        # determine which hq_cutters alive
+        self.hq_cutter = filter(lambda hqc: not hqc.is_dead(), self.hq_cutters)
+        
+        # determine which attack_cutters still alive
+        self.attack_cutter = filter(lambda ac: not ac.is_dead(), self.attack_cutters)
+        
+        # determine which spitters still alive
+        self.spitters = filter(lambda sp: not sp.is_dead(), self.spitters)
+        
+        print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
 
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
@@ -71,49 +93,9 @@ class AI(BaseAI):
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
         
-        return True
-        """"
-        # get broodmother home neste
-        phil = self.player.brood_mother
-        HOMEBASE = phil.nest
         
-        if HOMEBASE:
-          # webs inbound to HOMEBASE
-          INBOUND = HOMEBASE.webs
-          BITCH_ASS_WEB = None
-          # find nestes with connection to HOMEBASE
-          # find min distance neste
-          if INBOUND:
-              BITCH_ASS_WEB = INBOUND[0]
-              for web in INBOUND:
-                  if  web.length < BITCH_ASS_WEB.length :
-                      BITCH_ASS_WEB = web
-            
-        # TODO update spawn cause sux
-        # spawn spiders 50/50 W/C
-        while phil.eggs > 0:
-            if phil.eggs % 2 == 0:
-                phil.spawn("Weaver")
-
-            phil.spawn("Cutter")
-
-        # finish current work if not completed
-        # if no work, then choose nearest web to start work
-
-        if BITCH_ASS_WEB:
-            for sp in self.player.spiders:
-                if sp == phil:
-                    continue
-                if sp.busy == "":
-                    if sp.game_object_name == "Weaver":
-                        sp.weaken(BITCH_ASS_WEB)
-                    elif sp.game_object_name == "Cutter":
-                        sp.cut(BITCH_ASS_WEB)
-                    else: # lol get that bitch outta hurr
-                        phil.consume(sp)
-
         return True
-        """
+ 
         
         """
         spider = random.choice(self.player.spiders)
