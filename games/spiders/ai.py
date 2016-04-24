@@ -58,13 +58,19 @@ class AI(BaseAI):
         sorted(self.target_nests, key=lambda n: n.distance_to(self.HOMEBASE))
         print("TARGETS PRIORITIZED")
 
+        # get top five target nests closest to line of symmetry
         epsilon = 100
-        self.front_line = filter(lambda tn: math.abs(tn.x - 200) < epsilon, self.target_nests)
+        self.frontline = filter(lambda tn: math.abs(tn.x - 200) < epsilon, self.target_nests)
+        sorted(self.frontline, key=lambda n: math.abs(n.x - 200))
+
+        if len(self.frontline) > 5:
+            self.frontline = self.frontline[0:5]
+
         print("FRONTLINE ESTABLISHED")
 
 
     def game_updated(self):
-        """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
+        """ This is called every time the game's state updates, so if you are tracking anything you can update it  here.
         """
         # determine which hq_cutters alive
         self.hq_cutter = filter(lambda hqc: not hqc.is_dead(), self.hq_cutters)
@@ -85,16 +91,15 @@ class AI(BaseAI):
             reason (str): The human readable string explaining why you won or lost.
         """
 
-
     def run_turn(self):
         """ This is called every time it is this AI.player's turn.
 
         Returns:
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
+
         """
         # spawn at beginning of turn
-
 
         # HQ_cutters
         count = 0
@@ -115,7 +120,8 @@ class AI(BaseAI):
 
 
         # attack_cutters
-        
+
+
         """
 
         return True
