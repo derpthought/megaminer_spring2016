@@ -69,6 +69,9 @@ class AI(BaseAI):
         # remove duplicate values
         for n in self.frontline:
             self.target_nests.remove(n)
+            
+        if self.HOMEBASE in self.frontline:
+            self.frontline.remove(HOMEBASE)
         
         print("FRONTLINE ESTABLISHED")
         
