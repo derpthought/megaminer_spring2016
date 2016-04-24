@@ -10,8 +10,6 @@ phil = None
 
 class AI(BaseAI):
     """ The basic AI functions that are the same between games. """
-
-
     def get_name(self):
         """ This is the name you send to the server so your AI will control the player named this string.
 
@@ -36,16 +34,17 @@ class AI(BaseAI):
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
-        # webs inbound to HOMEBASE
-        INBOUND = HOMEBASE.webs
-        BITCH_ASS_THREAD = None
-        # find nestes with connection to HOMEBASE
-        # find min distance neste
-        if INBOUND:
-            BITCH_ASS_THREAD = INBOUND[0]
-            for web in INBOUND:
-                if HOMEBASE.distance_to(web) < HOMEBASE.distance_to(BITCH_ASS_THREAD):
-                    BITCH_ASS_THREAD = web
+        if HOMEBASE:
+          # webs inbound to HOMEBASE
+          INBOUND = HOMEBASE.webs
+          BITCH_ASS_THREAD = None
+          # find nestes with connection to HOMEBASE
+          # find min distance neste
+          if INBOUND:
+              BITCH_ASS_THREAD = INBOUND[0]
+              for web in INBOUND:
+                  if HOMEBASE.distance_to(web) < HOMEBASE.distance_to(BITCH_ASS_THREAD):
+                      BITCH_ASS_THREAD = web
 
     def end(self, won, reason):
         """ This is called when the game ends, you can clean up your data and dump files here if need be.
