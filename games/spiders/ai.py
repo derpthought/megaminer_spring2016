@@ -3,13 +3,13 @@
 from joueur.base_ai import BaseAI
 import random
 import math
-    
+
 class AI(BaseAI):
-    
+
     def __init__(self, game):
         self._game = game
         self._player = None
-        
+
         self.side = 0 # 0 denotes left, 1 right
         self.target_nests = []
         self.frontline = []
@@ -19,8 +19,8 @@ class AI(BaseAI):
         self.hq_cutters = []
         self.attack_cutters = []
         self.spitters = []
-        
-    """ The basic AI functions that are the same between games. """    
+
+    """ The basic AI functions that are the same between games. """
     def get_name(self):
         """ This is the name you send to the server so your AI will control the player named this string.
 
@@ -40,41 +40,41 @@ class AI(BaseAI):
         print("phil ONLINE")
         print("HOMEBASE DETERMINED")
         print("MAIN TARGET ACQUIRED")
-        
+
         # determine our sidedness
         if self.phil.nest.x <= 200:
             self.side = 0
             self.target_nests = filter(lambda n: n.x <= 200, self.game.nests)
             print("LEFT")
-            
+
         else:
             self.side = 1
             self.target_nests = filter(lambda n: n.x > 200, self.game.nests)
             print("RIGHT")
-            
+
         print("TARGET NESTS ACQUIRED")
-        
+
         # prioritize nests based on distance from HOMEBASE
         sorted(self.target_nests, key=lambda n: n.distance_to(self.HOMEBASE))
         print("TARGETS PRIORITIZED")
-        
+
         epsilon = 100
         self.front_line = filter(lambda tn: math.abs(tn.x - 200) < epsilon, self.target_nests)
         print("FRONTLINE ESTABLISHED")
-        
-        
+
+
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are tracking anything you can update it here.
         """
         # determine which hq_cutters alive
         self.hq_cutter = filter(lambda hqc: not hqc.is_dead(), self.hq_cutters)
-        
+
         # determine which attack_cutters still alive
         self.attack_cutter = filter(lambda ac: not ac.is_dead(), self.attack_cutters)
-        
+
         # determine which spitters still alive
         self.spitters = filter(lambda sp: not sp.is_dead(), self.spitters)
-        
+
         print("CASUALTIES REMOVED FROM MEMORY (phil SOBS)")
 
     def end(self, won, reason):
@@ -88,15 +88,34 @@ class AI(BaseAI):
 
     def run_turn(self):
         """ This is called every time it is this AI.player's turn.
-        
+
         Returns:
             bool: Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.
         """
-        
-        
+        """
+        # HQ_cutters
+        count = 0
+        for line in self.HOMEBASE.webs:
+            if line.a not in self.target_nests or line.b not in self.target_nests:
+                numNeed = ceil(25*line.strength**2/(4*line.length))
+                while count < len(self.HQ_cutters):
+                    if not ((self.HQ_cutters)[count]).busy():
+                        ((self.HQ_cutters)[count]).cut(line)
+                        numNeed -= 1
+                    count += 1
+                    if numNeed <= 0:
+                        break
+                if count == len(self.HQ_cutters):
+                    break
+
+        # spitters
+
+        # attack_cutters
+        """
+
         return True
- 
-        
+
+
         """
         spider = random.choice(self.player.spiders)
 
