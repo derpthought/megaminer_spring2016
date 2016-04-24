@@ -4,6 +4,9 @@ from joueur.base_ai import BaseAI
 import random
 import math
 
+def connected_to(webs, home):
+    return  any(True for web in webs if home in (web.nest_a, web.nest_b))
+    
 class AI(BaseAI):
 
     def __init__(self, game):
@@ -69,9 +72,9 @@ class AI(BaseAI):
         # remove duplicate values
         for n in self.frontline:
             self.target_nests.remove(n)
-            
+
         if self.HOMEBASE in self.frontline:
-            self.frontline.remove(HOMEBASE)
+            self.frontline.remove(self.HOMEBASE)
 
         print("FRONTLINE ESTABLISHED")
 
@@ -137,36 +140,47 @@ class AI(BaseAI):
             count_target = 0
             for spitter in self.spitters:
                 if count_front < len(self.frontline):
-                    spitter.spit(self.frontline[count_front])
+                    if self.HOMEBASE in self.frontline[count_front].webs:
+                        spitter.spit(self.frontline[count_front])
                     count_front += 1
 
                 else:
                     if count_target < len(self.target_nests):
-                        spitter.spit(self.target_nests[-1 - count_target])
+                        if self.HOMEBASE in self.target_nests[count_target].webs:
+                            spitter.spit(self.target_nests[-1 - count_target])
                         count_target += 1
 
                     else:
                         break
-
-        """
-        # HQ_cutters
-        count = 0
-        for line in self.HOMEBASE.webs:
-            if line.a not in self.target_nests or line.b not in self.target_nests:
-                numNeed = ceil(25*line.strength**2/(4*line.length))
-                while count < len(self.HQ_cutters):
-                    if not ((self.HQ_cutters)[count]).busy():
-                        ((self.HQ_cutters)[count]).cut(line)
-                        numNeed -= 1
-                    count += 1
-                    if numNeed <= 0:
-                        break
-                if count == len(self.HQ_cutters):
-                    break
-
+        
+        else:
+            while self.phil.eggs > 0:
+               self.attack_cutters.append(self.phil.spawn("Cutter"))
+           
+           
         # spitters
-
-
+        for spitter in self.spitters:
+            if not spitter.busy:
+                for nest in self.frontline:
+                    if connected_to(nest.webs, self.HOMEBASE):
+                        continue
+                    else:
+                        spitter.spit(nest)
+                        break
+            
+            
+            if not spitter.busy:
+                for nest in self.target_nests:
+                    if connected_to(nest.webs, self.HOMEBASE):
+                        continue
+                    else:
+                        spitter.spit(nest)
+                        break
+                        
+            # kill spitter if nothing to do
+            if len(self.frontline) == 0 and len(self.target_nests) == 0:
+                self.phil.consume(spitter)
+        
         # attack_cutters
         for cutter in self.attack_cutters:
             if not cutter.busy:
@@ -183,8 +197,37 @@ class AI(BaseAI):
                         if path.load + 1 < path.strength:
                             cutter.move(path)
                             break
-
-        """
+                            
+        # HQ_cutters
+        count = 0
+        for line in self.HOMEBASE.webs:
+            if line.nest_a not in self.target_nests or line.nest_b not in self.target_nests:
+                numNeed = math.ceil(25*line.strength**2/(4*line.length))
+                while count < len(self.hq_cutters):
+                    if not ((self.hq_cutters)[count]).busy:
+                        ((self.hq_cutters)[count]).cut(line)
+                        numNeed -= 1
+                    count += 1
+                    if numNeed <= 0:
+                        break
+                if count == len(self.hq_cutters):
+                    break
+                    
+        if not cutter.busy:
+                if cutter.nest != self.HOMEBASE:
+                    for path in cutter.nest.webs:
+                        for sp in path.spiderlings:
+                            if sp.owner != self.player:
+                                cutter.cut(path)
+                    else:
+                        if len(cutter.nest.webs) > 0:
+                            cutter.cut(cutter.nest.webs[0])
+                else:
+                    for path in self.HOMEBASE.webs:
+                        if path.load + 1 < path.strength:
+                            cutter.move(path)
+                            break
+                    
 
         # DEBUGGING
         print(str(start - self.player.time_remaining))
@@ -267,4 +310,4 @@ class AI(BaseAI):
                                       " weakening Web #" + web.id)
                                 weaver.weaken(web)
         return True # To signify that we are done with our turn
-"""
+        """
