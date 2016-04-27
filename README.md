@@ -1,6 +1,8 @@
 #Float Like A Butterfly String Like A Bee (FLABSLAB)
 
-This is the code to our AI from MegaMiner Spiders
+This is the code to our AI from MegaMiner Spiders, saved here to remind us of our terrible AI programming skills.
+
+RIP phil 
 
 # Spiders Python 3 Client
 
